@@ -7,17 +7,38 @@ interface StudentCardProps {
 
 export default function StudentCard({ student }: StudentCardProps) {
   const handleLinkedInClick = () => {
-    window.open(student.linkedinUrl, '_blank', 'noopener,noreferrer');
+    if (student.linkedinUrl && student.linkedinUrl.trim()) {
+      window.open(student.linkedinUrl, '_blank', 'noopener,noreferrer');
+    }
   };
+
+  const hasValidLinkedIn = student.linkedinUrl && student.linkedinUrl.trim() !== '';
+  const hasValidImage = student.imageUrl && student.imageUrl.trim() !== '';
 
   return (
     <div className="student-card bg-card rounded-xl shadow-sm border border-border p-6 hover:shadow-lg transition-all duration-300" data-testid={`card-student-${student.id}`}>
-      <img 
-        src={student.imageUrl}
-        alt={`${student.name} profile photo`}
-        className="w-20 h-20 rounded-full mx-auto mb-4 object-cover border-2 border-border"
-        data-testid={`img-student-photo-${student.id}`}
-      />
+      {/* Profile Image or Avatar */}
+      <div className="w-20 h-20 rounded-full mx-auto mb-4 border-2 border-border overflow-hidden bg-muted flex items-center justify-center">
+        {hasValidImage ? (
+          <img 
+            src={student.imageUrl}
+            alt={`${student.name} profile photo`}
+            className="w-full h-full object-cover"
+            data-testid={`img-student-photo-${student.id}`}
+            onError={(e) => {
+              // Hide image if it fails to load
+              e.currentTarget.style.display = 'none';
+              const parent = e.currentTarget.parentElement;
+              if (parent) {
+                parent.innerHTML = '<i class="fas fa-user text-2xl text-muted-foreground"></i>';
+              }
+            }}
+          />
+        ) : (
+          <i className="fas fa-user text-2xl text-muted-foreground"></i>
+        )}
+      </div>
+      
       <div className="text-center">
         <h3 className="font-semibold text-foreground text-lg mb-1" data-testid={`text-student-name-${student.id}`}>
           {student.name}
@@ -29,14 +50,23 @@ export default function StudentCard({ student }: StudentCardProps) {
           <i className="fas fa-calendar-alt mr-1"></i>
           {student.batch}
         </div>
-        <Button
-          onClick={handleLinkedInClick}
-          className="linkedin-btn inline-flex items-center px-4 py-2 rounded-lg text-white text-sm font-medium hover:shadow-lg transition-all bg-linkedin hover:bg-linkedin-hover"
-          data-testid={`button-linkedin-${student.id}`}
-        >
-          <i className="fab fa-linkedin mr-2"></i>
-          View Profile
-        </Button>
+        
+        {/* LinkedIn Button - only show if valid URL exists */}
+        {hasValidLinkedIn ? (
+          <Button
+            onClick={handleLinkedInClick}
+            className="linkedin-btn inline-flex items-center px-4 py-2 rounded-lg text-white text-sm font-medium hover:shadow-lg transition-all bg-linkedin hover:bg-linkedin-hover"
+            data-testid={`button-linkedin-${student.id}`}
+          >
+            <i className="fab fa-linkedin mr-2"></i>
+            View Profile
+          </Button>
+        ) : (
+          <div className="inline-flex items-center px-4 py-2 rounded-lg text-sm font-medium bg-muted text-muted-foreground cursor-not-allowed">
+            <i className="fab fa-linkedin mr-2"></i>
+            No Profile
+          </div>
+        )}
       </div>
     </div>
   );

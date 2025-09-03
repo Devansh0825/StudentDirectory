@@ -11,6 +11,8 @@ export interface IStorage {
   createStudent(student: InsertStudent): Promise<Student>;
   searchStudents(query: string): Promise<Student[]>;
   filterStudents(batch?: string, course?: string): Promise<Student[]>;
+  clearAllStudents(): Promise<void>;
+  importStudents(students: InsertStudent[]): Promise<Student[]>;
 }
 
 export class MemStorage implements IStorage {
@@ -185,6 +187,23 @@ export class MemStorage implements IStorage {
     }
     
     return students;
+  }
+
+  async clearAllStudents(): Promise<void> {
+    this.students.clear();
+  }
+
+  async importStudents(students: InsertStudent[]): Promise<Student[]> {
+    const importedStudents: Student[] = [];
+    
+    for (const studentData of students) {
+      const id = randomUUID();
+      const student: Student = { ...studentData, id };
+      this.students.set(id, student);
+      importedStudents.push(student);
+    }
+    
+    return importedStudents;
   }
 }
 

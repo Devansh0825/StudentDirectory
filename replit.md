@@ -20,6 +20,8 @@ Preferred communication style: Simple, everyday language.
 - **Runtime**: Node.js with Express.js framework
 - **Language**: TypeScript with ES modules
 - **API Design**: RESTful API with JSON responses
+- **File Upload**: Multer middleware for handling CSV/XLSX files
+- **Data Parsing**: PapaParse for CSV and SheetJS for XLSX file processing
 - **Data Storage**: In-memory storage with sample data (MemStorage class)
 - **Development**: Hot reload with Vite middleware integration
 
@@ -31,7 +33,9 @@ Preferred communication style: Simple, everyday language.
 
 ## Key Features
 - **Student Management**: CRUD operations for student profiles
+- **File Import**: CSV/XLSX file upload and parsing for bulk student data import
 - **Search & Filter**: Text search, batch filtering, course filtering, and sorting
+- **Data Management**: Clear all data and re-import functionality
 - **Responsive Design**: Mobile-first approach with Tailwind breakpoints
 - **Component Library**: Comprehensive UI component system with consistent theming
 
@@ -54,6 +58,9 @@ Preferred communication style: Simple, everyday language.
 - **@tanstack/react-query**: Server state management
 - **express**: Backend web framework
 - **vite**: Frontend build tool and dev server
+- **multer**: File upload handling middleware
+- **papaparse**: CSV file parsing library
+- **xlsx**: Excel file processing library
 
 ## UI & Styling
 - **@radix-ui/***: Accessible UI primitives

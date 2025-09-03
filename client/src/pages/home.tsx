@@ -25,7 +25,14 @@ export default function Home() {
   const apiUrl = `/api/students${queryString ? `?${queryString}` : ''}`;
 
   const { data: students, isLoading, error } = useQuery<Student[]>({
-    queryKey: [apiUrl],
+    queryKey: ['/api/students', { search: searchTerm, batch: selectedBatch, course: selectedCourse, sort: sortBy }],
+    queryFn: async () => {
+      const response = await fetch(apiUrl);
+      if (!response.ok) {
+        throw new Error('Failed to fetch students');
+      }
+      return response.json();
+    }
   });
 
   const handleSearch = (value: string) => {

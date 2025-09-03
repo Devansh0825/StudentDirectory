@@ -1,3 +1,6 @@
+import { Button } from "@/components/ui/button";
+import { Link } from "wouter";
+
 interface HeaderProps {
   studentCount: number;
 }
@@ -22,9 +25,12 @@ export default function Header({ studentCount }: HeaderProps) {
             <span className="text-sm text-muted-foreground" data-testid="text-student-count">
               {studentCount} Students
             </span>
-            <div className="h-8 w-8 bg-primary rounded-full flex items-center justify-center">
-              <i className="fas fa-user text-primary-foreground text-sm"></i>
-            </div>
+            <Link href="/admin/login">
+              <Button variant="outline" size="sm" data-testid="button-admin-login">
+                <i className="fas fa-shield-alt mr-2"></i>
+                Admin
+              </Button>
+            </Link>
           </div>
         </div>
       </div>

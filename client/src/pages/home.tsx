@@ -5,17 +5,14 @@ import Header from "@/components/header";
 import FilterSection from "@/components/filter-section";
 import StudentCard from "@/components/student-card";
 import Footer from "@/components/footer";
-import FileUpload from "@/components/file-upload";
-import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 
 export default function Home() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedBatch, setSelectedBatch] = useState("all");
   const [selectedCourse, setSelectedCourse] = useState("all");
   const [sortBy, setSortBy] = useState("name");
-  const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
 
   // Build query parameters
   const queryParams = new URLSearchParams();
@@ -80,26 +77,9 @@ export default function Home() {
       <Header studentCount={filteredStudents.length} />
       
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Import Data Button */}
-        <div className="mb-6 flex justify-between items-center">
+        {/* Page Title */}
+        <div className="mb-6">
           <h1 className="text-2xl font-bold text-foreground">Student Directory</h1>
-          <Dialog open={uploadDialogOpen} onOpenChange={setUploadDialogOpen}>
-            <DialogTrigger asChild>
-              <Button 
-                className="bg-primary hover:bg-primary/90"
-                data-testid="button-import-data"
-              >
-                <i className="fas fa-upload mr-2"></i>
-                Import Data
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-              <DialogHeader>
-                <DialogTitle>Import Student Data</DialogTitle>
-              </DialogHeader>
-              <FileUpload onUploadComplete={() => setUploadDialogOpen(false)} />
-            </DialogContent>
-          </Dialog>
         </div>
 
         <FilterSection

@@ -1,10 +1,15 @@
-import { type User, type InsertUser, type Student, type InsertStudent } from "@shared/schema";
+import { type User, type InsertUser, type Student, type InsertStudent, type AdminSession } from "@shared/schema";
 import { randomUUID } from "crypto";
 
 export interface IStorage {
   getUser(id: string): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
+  
+  // Admin session management
+  createAdminSession(username: string, sessionToken: string): Promise<AdminSession>;
+  getAdminSession(sessionToken: string): Promise<AdminSession | undefined>;
+  deleteAdminSession(sessionToken: string): Promise<void>;
   
   getAllStudents(): Promise<Student[]>;
   getStudent(id: string): Promise<Student | undefined>;
@@ -18,13 +23,17 @@ export interface IStorage {
 export class MemStorage implements IStorage {
   private users: Map<string, User>;
   private students: Map<string, Student>;
+  private adminSessions: Map<string, AdminSession>;
 
   constructor() {
     this.users = new Map();
     this.students = new Map();
+    this.adminSessions = new Map();
     
     // Initialize with sample MCA students data
     this.initializeStudents();
+    // Initialize admin user
+    this.initializeAdmin();
   }
 
   private initializeStudents() {
@@ -133,6 +142,16 @@ export class MemStorage implements IStorage {
     });
   }
 
+  private initializeAdmin() {
+    // Create default admin user (username: admin, password: admin123)
+    const adminId = randomUUID();
+    this.users.set(adminId, {
+      id: adminId,
+      username: "admin",
+      password: "admin123" // In real app, this should be hashed
+    });
+  }
+
   async getUser(id: string): Promise<User | undefined> {
     return this.users.get(id);
   }
@@ -204,6 +223,44 @@ export class MemStorage implements IStorage {
     }
     
     return importedStudents;
+  }
+
+  // Admin session management
+  async createAdminSession(username: string, sessionToken: string): Promise<AdminSession> {
+    const id = randomUUID();
+    const expiresAt = new Date();
+    expiresAt.setHours(expiresAt.getHours() + 24); // 24 hour expiry
+    
+    const session: AdminSession = {
+      id,
+      sessionToken,
+      username,
+      createdAt: new Date(),
+      expiresAt
+    };
+    
+    this.adminSessions.set(sessionToken, session);
+    return session;
+  }
+
+  async getAdminSession(sessionToken: string): Promise<AdminSession | undefined> {
+    const session = this.adminSessions.get(sessionToken);
+    
+    // Check if session exists and hasn't expired
+    if (session && session.expiresAt && session.expiresAt > new Date()) {
+      return session;
+    }
+    
+    // Clean up expired session
+    if (session) {
+      this.adminSessions.delete(sessionToken);
+    }
+    
+    return undefined;
+  }
+
+  async deleteAdminSession(sessionToken: string): Promise<void> {
+    this.adminSessions.delete(sessionToken);
   }
 }
 

@@ -9,9 +9,10 @@ import { useToast } from "@/hooks/use-toast";
 
 interface FileUploadProps {
   onUploadComplete?: () => void;
+  adminMode?: boolean;
 }
 
-export default function FileUpload({ onUploadComplete }: FileUploadProps) {
+export default function FileUpload({ onUploadComplete, adminMode = false }: FileUploadProps) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [dragActive, setDragActive] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
@@ -24,9 +25,20 @@ export default function FileUpload({ onUploadComplete }: FileUploadProps) {
       formData.append('file', file);
       
       // Direct fetch for file upload (FormData requires special handling)
-      const response = await fetch('/api/students/import', {
+      const url = adminMode ? '/api/admin/students/import' : '/api/students/import';
+      const headers: Record<string, string> = {};
+      
+      if (adminMode) {
+        const sessionToken = localStorage.getItem("adminSessionToken");
+        if (sessionToken) {
+          headers.Authorization = `Bearer ${sessionToken}`;
+        }
+      }
+      
+      const response = await fetch(url, {
         method: 'POST',
         body: formData,
+        headers,
         credentials: 'include',
       });
       
@@ -59,8 +71,25 @@ export default function FileUpload({ onUploadComplete }: FileUploadProps) {
 
   const clearDataMutation = useMutation({
     mutationFn: async () => {
-      const response = await apiRequest('DELETE', '/api/students/all');
-      return response.json();
+      if (adminMode) {
+        const sessionToken = localStorage.getItem("adminSessionToken");
+        const response = await fetch('/api/admin/students/all', {
+          method: 'DELETE',
+          headers: {
+            Authorization: `Bearer ${sessionToken}`,
+          },
+        });
+        
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.error || "Failed to clear students");
+        }
+        
+        return response.json();
+      } else {
+        const response = await apiRequest('DELETE', '/api/students/all');
+        return response.json();
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/students'] });
@@ -236,24 +265,26 @@ export default function FileUpload({ onUploadComplete }: FileUploadProps) {
             )}
           </Button>
           
-          <Button
-            variant="outline"
-            onClick={handleClearData}
-            disabled={clearDataMutation.isPending}
-            data-testid="button-clear-data"
-          >
-            {clearDataMutation.isPending ? (
-              <>
-                <i className="fas fa-spinner fa-spin mr-2"></i>
-                Clearing...
-              </>
-            ) : (
-              <>
-                <i className="fas fa-trash mr-2"></i>
-                Clear All Data
-              </>
-            )}
-          </Button>
+          {adminMode && (
+            <Button
+              variant="outline"
+              onClick={handleClearData}
+              disabled={clearDataMutation.isPending}
+              data-testid="button-clear-data"
+            >
+              {clearDataMutation.isPending ? (
+                <>
+                  <i className="fas fa-spinner fa-spin mr-2"></i>
+                  Clearing...
+                </>
+              ) : (
+                <>
+                  <i className="fas fa-trash mr-2"></i>
+                  Clear All Data
+                </>
+              )}
+            </Button>
+          )}
         </div>
 
         {/* Instructions */}

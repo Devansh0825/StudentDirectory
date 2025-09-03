@@ -1,10 +1,11 @@
-import type { Express } from "express";
+import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertStudentSchema } from "@shared/schema";
 import multer from "multer";
 import * as XLSX from "xlsx";
 import Papa from "papaparse";
+import { randomUUID } from "crypto";
 
 // Configure multer for file uploads
 const upload = multer({
@@ -68,7 +69,77 @@ function xlsxToObjects(rows: any[][]): any[] {
   });
 }
 
+// Admin authentication middleware
+async function requireAdmin(req: Request, res: Response, next: NextFunction) {
+  try {
+    const sessionToken = req.headers.authorization?.replace('Bearer ', '');
+    
+    if (!sessionToken) {
+      return res.status(401).json({ error: "Admin authentication required" });
+    }
+    
+    const session = await storage.getAdminSession(sessionToken);
+    if (!session) {
+      return res.status(401).json({ error: "Invalid or expired admin session" });
+    }
+    
+    // Add admin info to request
+    (req as any).admin = { username: session.username };
+    next();
+  } catch (error) {
+    res.status(500).json({ error: "Authentication error" });
+  }
+}
+
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Admin authentication routes
+  app.post("/api/admin/login", async (req, res) => {
+    try {
+      const { username, password } = req.body;
+      
+      if (!username || !password) {
+        return res.status(400).json({ error: "Username and password are required" });
+      }
+      
+      // Find admin user
+      const admin = await storage.getUserByUsername(username);
+      if (!admin || admin.password !== password) {
+        return res.status(401).json({ error: "Invalid credentials" });
+      }
+      
+      // Create session
+      const sessionToken = randomUUID();
+      const session = await storage.createAdminSession(username, sessionToken);
+      
+      res.json({
+        message: "Login successful",
+        sessionToken,
+        username: admin.username
+      });
+    } catch (error) {
+      res.status(500).json({ error: "Login failed" });
+    }
+  });
+  
+  app.post("/api/admin/logout", async (req, res) => {
+    try {
+      const sessionToken = req.headers.authorization?.replace('Bearer ', '');
+      if (sessionToken) {
+        await storage.deleteAdminSession(sessionToken);
+      }
+      res.json({ message: "Logout successful" });
+    } catch (error) {
+      res.status(500).json({ error: "Logout failed" });
+    }
+  });
+  
+  app.get("/api/admin/verify", requireAdmin, async (req, res) => {
+    res.json({
+      authenticated: true,
+      username: (req as any).admin.username
+    });
+  });
+
   // Get all students
   app.get("/api/students", async (req, res) => {
     try {
@@ -128,8 +199,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Upload and import students from CSV/XLSX file
-  app.post("/api/students/import", upload.single('file'), async (req, res) => {
+  // Upload and import students from CSV/XLSX file (Admin only)
+  app.post("/api/admin/students/import", requireAdmin, upload.single('file'), async (req, res) => {
     try {
       if (!req.file) {
         return res.status(400).json({ error: "No file uploaded" });
@@ -208,8 +279,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Clear all students
-  app.delete("/api/students/all", async (req, res) => {
+  // Clear all students (Admin only)
+  app.delete("/api/admin/students/all", requireAdmin, async (req, res) => {
     try {
       await storage.clearAllStudents();
       res.json({ message: "All students cleared successfully" });

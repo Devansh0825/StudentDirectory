@@ -147,17 +147,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       let students = await storage.getAllStudents();
       
-      // Apply search filter
+      // Apply search filter first
       if (search && typeof search === 'string') {
-        students = await storage.searchStudents(search);
+        const lowerQuery = search.toLowerCase();
+        students = students.filter(student =>
+          student.name.toLowerCase().includes(lowerQuery) ||
+          student.email.toLowerCase().includes(lowerQuery) ||
+          student.course.toLowerCase().includes(lowerQuery) ||
+          student.batch.toLowerCase().includes(lowerQuery)
+        );
       }
       
-      // Apply batch and course filters
-      if (batch || course) {
-        students = await storage.filterStudents(
-          batch as string | undefined,
-          course as string | undefined
-        );
+      // Apply batch and course filters on the current results
+      if (batch && typeof batch === 'string') {
+        students = students.filter(student => student.batch === batch);
+      }
+      
+      if (course && typeof course === 'string') {
+        students = students.filter(student => student.course === course);
       }
       
       // Apply sorting

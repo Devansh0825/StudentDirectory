@@ -23,7 +23,18 @@ export default function FileUpload({ onUploadComplete }: FileUploadProps) {
       const formData = new FormData();
       formData.append('file', file);
       
-      const response = await apiRequest('POST', '/api/students/import', formData);
+      // Direct fetch for file upload (FormData requires special handling)
+      const response = await fetch('/api/students/import', {
+        method: 'POST',
+        body: formData,
+        credentials: 'include',
+      });
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(errorText || response.statusText);
+      }
+      
       return response.json();
     },
     onSuccess: (data) => {

@@ -158,9 +158,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // Map common column names (case insensitive)
           const studentData = {
             name: row.name || row.Name || row.student_name || row['Student Name'] || '',
-            email: row.email || row.Email || row.student_email || row['Student Email'] || '',
-            course: row.course || row.Course || row.program || row.Program || 'MCA',
-            batch: row.batch || row.Batch || row.year || row.Year || '2024-2026',
+            email: row.email || row.Email || row.student_email || row['Student Email'] || (row.name ? `${row.name.toLowerCase().replace(/\s+/g, '.')}@university.edu` : ''),
+            course: row.course || row.Course || row.program || row.Program || row.branch || row.Branch || 'MCA',
+            batch: row.batch || row.Batch || row.year || row.Year || row.cohort || row.Cohort || '2024-2026',
             imageUrl: row.imageUrl || row.image_url || row.photo || row.Photo || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&auto=format&fit=crop&w=300&h=300',
             linkedinUrl: row.linkedinUrl || row.linkedin_url || row.linkedin || row.LinkedIn || row.profile || row.Profile || 'https://linkedin.com/in/profile'
           };

@@ -25,8 +25,25 @@ export default function StudentCard({ student }: StudentCardProps) {
             alt={`${student.name} profile photo`}
             className="w-full h-full object-cover"
             data-testid={`img-student-photo-${student.id}`}
+            onLoad={(e) => {
+              console.log(`Image loaded successfully for ${student.name}: ${student.imageUrl}`);
+            }}
             onError={(e) => {
-              // Hide image if it fails to load
+              console.error(`Image failed to load for ${student.name}: ${student.imageUrl}`);
+              // Try alternative Google Drive format if original fails
+              const originalSrc = e.currentTarget.src;
+              if (originalSrc.includes('drive.google.com/thumbnail')) {
+                // Extract file ID and try direct format
+                const fileIdMatch = originalSrc.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+                if (fileIdMatch) {
+                  const fileId = fileIdMatch[1];
+                  const newSrc = `https://lh3.googleusercontent.com/d/${fileId}=w300-h300`;
+                  console.log(`Trying alternative format: ${newSrc}`);
+                  e.currentTarget.src = newSrc;
+                  return;
+                }
+              }
+              // If all else fails, hide image and show icon
               e.currentTarget.style.display = 'none';
               const parent = e.currentTarget.parentElement;
               if (parent) {

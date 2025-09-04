@@ -258,8 +258,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
             return url;
           };
 
-          // Debug: Log row data to see what columns we're working with
-          console.log('Processing row:', JSON.stringify(row, null, 2));
+          // Extract image and LinkedIn URLs with specific column mapping
+          const rawImageUrl = row.imageUrl || row['imageUrl'] || row.image_url || row.photo || row.Photo || '';
+          const rawLinkedInUrl = row['Linkedin Url'] || row.linkedinUrl || row.linkedin_url || row.linkedin || row.LinkedIn || row.profile || row.Profile || '';
 
           // Map common column names (case insensitive)
           const studentData = {
@@ -267,12 +268,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
             email: row.email || row.Email || row.student_email || row['Student Email'] || (row.name ? `${row.name.toLowerCase().replace(/\s+/g, '.')}@university.edu` : '') || '',
             course: row.course || row.Course || row.program || row.Program || row.branch || row.Branch || 'MCA',
             batch: row.batch || row.Batch || row.year || row.Year || row.cohort || row.Cohort || '2024-2026',
-            imageUrl: convertGoogleDriveUrl(row.imageUrl || row.image_url || row.photo || row.Photo || row['imageUrl'] || ''),
-            linkedinUrl: normalizeLinkedInUrl(row.linkedinUrl || row.linkedin_url || row.linkedin || row.LinkedIn || row['Linkedin Url'] || row.profile || row.Profile || '')
+            imageUrl: convertGoogleDriveUrl(rawImageUrl),
+            linkedinUrl: normalizeLinkedInUrl(rawLinkedInUrl)
           };
 
-          // Debug: Log processed data
-          console.log('Processed student data:', JSON.stringify(studentData, null, 2));
+          // Only log for debugging - remove in production
+          // console.log(`Processing student: ${studentData.name}`);
+          // console.log(`Raw LinkedIn: "${rawLinkedInUrl}" -> Processed: "${studentData.linkedinUrl}"`);
+          // console.log(`Raw Image: "${rawImageUrl}" -> Processed: "${studentData.imageUrl}"`);
 
           // Validate required fields
           if (!studentData.name.trim()) {
@@ -299,8 +302,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "No valid student data found in the file" });
       }
 
-      // Import new data (keep existing data)
-      const importedStudents = await storage.importStudents(studentsToImport);
+      // Import with upsert logic (update existing, create new)
+      const importedStudents = await storage.upsertStudents(studentsToImport);
 
       res.json({
         message: `Successfully imported ${importedStudents.length} students`,

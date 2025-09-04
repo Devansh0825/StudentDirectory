@@ -26,18 +26,24 @@ Preferred communication style: Simple, everyday language.
 - **Development**: Hot reload with Vite middleware integration
 
 ## Database & ORM
-- **ORM**: Drizzle ORM configured for PostgreSQL
+- **PostgreSQL**: Drizzle ORM configured for PostgreSQL (default)
+- **MongoDB**: Mongoose ODM for MongoDB support (alternative)
+- **Database Switching**: Use `DATABASE_TYPE=mongodb` environment variable to switch to MongoDB
 - **Schema**: Shared schema definitions between client and server
 - **Validation**: Zod schemas for runtime type checking
-- **Migration**: Drizzle Kit for database migrations
+- **Migration**: Drizzle Kit for database migrations (PostgreSQL) / Mongoose for schema management (MongoDB)
 
 ## Key Features
 - **Student Management**: CRUD operations for student profiles
-- **File Import**: CSV/XLSX file upload and parsing for bulk student data import
+- **File Import**: CSV/XLSX file upload and parsing for bulk student data import with intelligent column mapping
+- **Google Drive Integration**: Automatic conversion of Google Drive sharing links to working thumbnail URLs
+- **Smart Import**: Upsert functionality - updates existing students instead of creating duplicates
+- **LinkedIn Integration**: Automatic LinkedIn URL formatting and validation
 - **Search & Filter**: Text search, batch filtering, course filtering, and sorting
 - **Data Management**: Clear all data and re-import functionality
 - **Responsive Design**: Mobile-first approach with Tailwind breakpoints
 - **Component Library**: Comprehensive UI component system with consistent theming
+- **Database Options**: Support for both PostgreSQL and MongoDB
 
 ## Project Structure
 - `/client` - React frontend application
@@ -81,4 +87,7 @@ Preferred communication style: Simple, everyday language.
 
 ## Database
 - **PostgreSQL**: Primary database (configured via DATABASE_URL environment variable)
-- **Neon Database**: Serverless PostgreSQL hosting platform
+- **MongoDB**: Alternative database (configured via MONGODB_URL environment variable)
+- **Database Switching**: Set `DATABASE_TYPE=mongodb` to use MongoDB instead of PostgreSQL
+- **Neon Database**: Serverless PostgreSQL hosting platform (for PostgreSQL option)
+- **MongoDB Atlas**: Cloud MongoDB service (recommended for MongoDB option)

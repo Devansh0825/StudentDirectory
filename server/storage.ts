@@ -20,6 +20,7 @@ export interface IStorage {
   filterStudents(batch?: string, course?: string): Promise<Student[]>;
   clearAllStudents(): Promise<void>;
   importStudents(students: InsertStudent[]): Promise<Student[]>;
+  upsertStudents(students: InsertStudent[]): Promise<Student[]>;
 }
 
 export class MemStorage implements IStorage {
@@ -118,6 +119,35 @@ export class MemStorage implements IStorage {
     }
     
     return importedStudents;
+  }
+
+  async upsertStudents(students: InsertStudent[]): Promise<Student[]> {
+    const upsertedStudents: Student[] = [];
+    
+    for (const studentData of students) {
+      // Check if student already exists by email or name
+      const existingStudent = Array.from(this.students.values()).find(
+        s => s.email.toLowerCase() === studentData.email.toLowerCase() || 
+             s.name.toLowerCase() === studentData.name.toLowerCase()
+      );
+      
+      if (existingStudent) {
+        // Update existing student
+        const updatedStudent: Student = { ...existingStudent, ...studentData };
+        this.students.set(existingStudent.id, updatedStudent);
+        upsertedStudents.push(updatedStudent);
+        console.log(`Updated existing student: ${updatedStudent.name}`);
+      } else {
+        // Create new student
+        const id = randomUUID();
+        const student: Student = { ...studentData, id };
+        this.students.set(id, student);
+        upsertedStudents.push(student);
+        console.log(`Created new student: ${student.name}`);
+      }
+    }
+    
+    return upsertedStudents;
   }
 
   // Admin session management
@@ -244,6 +274,37 @@ export class DatabaseStorage implements IStorage {
     return importedStudents;
   }
 
+  async upsertStudents(studentsData: InsertStudent[]): Promise<Student[]> {
+    if (studentsData.length === 0) return [];
+    
+    const upsertedStudents: Student[] = [];
+    
+    for (const studentData of studentsData) {
+      // Check if student already exists by email or name
+      const [existingByEmail] = await db.select().from(students).where(eq(students.email, studentData.email));
+      const [existingByName] = await db.select().from(students).where(eq(students.name, studentData.name));
+      
+      const existing = existingByEmail || existingByName;
+      
+      if (existing) {
+        // Update existing student
+        const [updatedStudent] = await db.update(students)
+          .set(studentData)
+          .where(eq(students.id, existing.id))
+          .returning();
+        upsertedStudents.push(updatedStudent);
+        console.log(`Updated existing student: ${updatedStudent.name}`);
+      } else {
+        // Create new student
+        const [newStudent] = await db.insert(students).values(studentData).returning();
+        upsertedStudents.push(newStudent);
+        console.log(`Created new student: ${newStudent.name}`);
+      }
+    }
+    
+    return upsertedStudents;
+  }
+
   // Admin session management
   async createAdminSession(username: string, sessionToken: string): Promise<AdminSession> {
     const expiresAt = new Date();
@@ -280,4 +341,13 @@ export class DatabaseStorage implements IStorage {
   }
 }
 
-export const storage = new DatabaseStorage();
+import { MongoDBStorage } from "./storage-mongodb";
+
+// Choose storage implementation based on environment variable
+const useDatabase = process.env.DATABASE_TYPE || 'postgresql'; // 'postgresql' or 'mongodb'
+
+export const storage = useDatabase === 'mongodb' 
+  ? new MongoDBStorage() 
+  : new DatabaseStorage();
+
+console.log(`Using ${useDatabase} database storage`);

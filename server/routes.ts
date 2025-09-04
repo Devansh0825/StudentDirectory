@@ -233,14 +233,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const row = parsedData[i];
         
         try {
-          // Helper function to convert Google Drive URLs to direct thumbnail URLs
+          // Helper function to convert Google Drive URLs to direct image URLs
           const convertGoogleDriveUrl = (url: string): string => {
             if (!url) return '';
             // Extract file ID from Google Drive URL
             const fileIdMatch = url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
             if (fileIdMatch) {
               const fileId = fileIdMatch[1];
-              return `https://drive.google.com/thumbnail?id=${fileId}&sz=w300-h300`;
+              // Use direct googleusercontent.com URL instead of thumbnail API
+              return `https://lh3.googleusercontent.com/d/${fileId}=w300-h300`;
             }
             return url; // Return original URL if not a Google Drive URL
           };

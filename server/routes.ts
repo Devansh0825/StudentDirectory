@@ -233,14 +233,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const row = parsedData[i];
         
         try {
+          // Helper function to convert Google Drive URLs to direct thumbnail URLs
+          const convertGoogleDriveUrl = (url: string): string => {
+            if (!url) return '';
+            // Extract file ID from Google Drive URL
+            const fileIdMatch = url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+            if (fileIdMatch) {
+              const fileId = fileIdMatch[1];
+              return `https://drive.google.com/thumbnail?id=${fileId}&sz=w300-h300`;
+            }
+            return url; // Return original URL if not a Google Drive URL
+          };
+
+          // Helper function to normalize LinkedIn URLs
+          const normalizeLinkedInUrl = (url: string): string => {
+            if (!url) return '';
+            url = url.trim();
+            // Add https:// if missing
+            if (url.startsWith('www.linkedin.com')) {
+              url = 'https://' + url;
+            }
+            // Remove extra parameters for cleaner URLs
+            url = url.split('?')[0].split('#')[0];
+            return url;
+          };
+
           // Map common column names (case insensitive)
           const studentData = {
             name: row.name || row.Name || row.student_name || row['Student Name'] || '',
             email: row.email || row.Email || row.student_email || row['Student Email'] || (row.name ? `${row.name.toLowerCase().replace(/\s+/g, '.')}@university.edu` : '') || '',
             course: row.course || row.Course || row.program || row.Program || row.branch || row.Branch || 'MCA',
             batch: row.batch || row.Batch || row.year || row.Year || row.cohort || row.Cohort || '2024-2026',
-            imageUrl: row.imageUrl || row.image_url || row.photo || row.Photo || '',
-            linkedinUrl: row.linkedinUrl || row.linkedin_url || row.linkedin || row.LinkedIn || row.profile || row.Profile || ''
+            imageUrl: convertGoogleDriveUrl(row.imageUrl || row.image_url || row.photo || row.Photo || ''),
+            linkedinUrl: normalizeLinkedInUrl(row.linkedinUrl || row.linkedin_url || row.linkedin || row.LinkedIn || row['Linkedin Url'] || row.profile || row.Profile || '')
           };
 
           // Validate required fields

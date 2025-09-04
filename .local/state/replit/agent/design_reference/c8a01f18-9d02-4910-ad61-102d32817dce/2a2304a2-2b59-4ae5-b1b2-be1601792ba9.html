@@ -1,0 +1,589 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Directory - MCA Batch 2024-2026</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+    tailwind.config = {
+        theme: {
+            extend: {
+                borderRadius: {
+                    lg: "var(--radius)",
+                    md: "calc(var(--radius) - 2px)",
+                    sm: "calc(var(--radius) - 4px)",
+                },
+                colors: {
+                    background: "var(--background)",
+                    foreground: "var(--foreground)",
+                    card: {
+                        DEFAULT: "var(--card)",
+                        foreground: "var(--card-foreground)",
+                    },
+                    popover: {
+                        DEFAULT: "var(--popover)",
+                        foreground: "var(--popover-foreground)",
+                    },
+                    primary: {
+                        DEFAULT: "var(--primary)",
+                        foreground: "var(--primary-foreground)",
+                    },
+                    secondary: {
+                        DEFAULT: "var(--secondary)",
+                        foreground: "var(--secondary-foreground)",
+                    },
+                    muted: {
+                        DEFAULT: "var(--muted)",
+                        foreground: "var(--muted-foreground)",
+                    },
+                    accent: {
+                        DEFAULT: "var(--accent)",
+                        foreground: "var(--accent-foreground)",
+                    },
+                    destructive: {
+                        DEFAULT: "var(--destructive)",
+                        foreground: "var(--destructive-foreground)",
+                    },
+                    border: "var(--border)",
+                    input: "var(--input)",
+                    ring: "var(--ring)",
+                    chart: {
+                        "1": "var(--chart-1)",
+                        "2": "var(--chart-2)",
+                        "3": "var(--chart-3)",
+                        "4": "var(--chart-4)",
+                        "5": "var(--chart-5)",
+                    }
+                },
+                fontFamily: {
+                    sans: ["Inter", "var(--font-sans)"],
+                }
+            },
+        }
+    };
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --background: hsl(210 40% 98%);
+            --foreground: hsl(222.2 84% 4.9%);
+            --card: hsl(0 0% 100%);
+            --card-foreground: hsl(222.2 84% 4.9%);
+            --popover: hsl(0 0% 100%);
+            --popover-foreground: hsl(222.2 84% 4.9%);
+            --primary: hsl(221.2 83.2% 53.3%);
+            --primary-foreground: hsl(210 40% 98%);
+            --secondary: hsl(210 40% 96%);
+            --secondary-foreground: hsl(222.2 84% 4.9%);
+            --muted: hsl(210 40% 96%);
+            --muted-foreground: hsl(215.4 16.3% 46.9%);
+            --accent: hsl(210 40% 96%);
+            --accent-foreground: hsl(222.2 84% 4.9%);
+            --destructive: hsl(0 84.2% 60.2%);
+            --destructive-foreground: hsl(210 40% 98%);
+            --border: hsl(214.3 31.8% 91.4%);
+            --input: hsl(214.3 31.8% 91.4%);
+            --ring: hsl(221.2 83.2% 53.3%);
+            --radius: 0.5rem;
+            --chart-1: hsl(12 76% 61%);
+            --chart-2: hsl(173 58% 39%);
+            --chart-3: hsl(197 37% 24%);
+            --chart-4: hsl(43 74% 66%);
+            --chart-5: hsl(27 87% 67%);
+        }
+        
+        .student-card {
+            transition: all 0.3s ease;
+        }
+        
+        .student-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+        
+        .linkedin-btn {
+            background: linear-gradient(135deg, #0077b5 0%, #005885 100%);
+            transition: all 0.3s ease;
+        }
+        
+        .linkedin-btn:hover {
+            background: linear-gradient(135deg, #005885 0%, #004465 100%);
+            transform: scale(1.05);
+        }
+        
+        .filter-badge {
+            animation: fadeIn 0.3s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .search-input:focus {
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+    </style>
+</head>
+<body class="bg-background font-sans">
+    <!-- @COMPONENT: Header [Navigation and branding] -->
+    <header class="bg-card shadow-sm border-b border-border">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center space-x-4">
+                    <i class="fas fa-graduation-cap text-primary text-2xl"></i>
+                    <div>
+                        <h1 class="text-xl font-bold text-foreground">Student Directory</h1>
+                        <p class="text-sm text-muted-foreground">MCA Program 2024-2026</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <span class="text-sm text-muted-foreground" data-bind="studentsCount">124 Students</span>
+                    <div class="h-8 w-8 bg-primary rounded-full flex items-center justify-center">
+                        <i class="fas fa-user text-primary-foreground text-sm"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+    <!-- @END_COMPONENT: Header -->
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- @COMPONENT: FilterSection [Search and filter controls] -->
+        <div class="mb-8">
+            <div class="flex flex-col lg:flex-row gap-6 items-start lg:items-center justify-between">
+                <!-- Search Bar -->
+                <div class="relative flex-1 max-w-md">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <i class="fas fa-search text-muted-foreground"></i>
+                    </div>
+                    <input 
+                        type="text" 
+                        placeholder="Search students by name..." 
+                        class="search-input w-full pl-10 pr-4 py-3 bg-card border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary transition-all"
+                        data-event="input:handleSearch"
+                        data-mock="true"
+                    />
+                </div>
+
+                <!-- Filter Controls -->
+                <div class="flex flex-wrap gap-4">
+                    <!-- Batch Filter -->
+                    <div class="relative">
+                        <select class="appearance-none bg-card border border-border rounded-lg px-4 py-3 pr-8 focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary" data-event="change:handleBatchFilter">
+                            <option value="">All Batches</option>
+                            <option value="2024-2026">2024-2026</option>
+                            <option value="2023-2025">2023-2025</option>
+                            <option value="2022-2024">2022-2024</option>
+                        </select>
+                        <div class="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
+                            <i class="fas fa-chevron-down text-muted-foreground"></i>
+                        </div>
+                    </div>
+
+                    <!-- Course Filter -->
+                    <div class="relative">
+                        <select class="appearance-none bg-card border border-border rounded-lg px-4 py-3 pr-8 focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary" data-event="change:handleCourseFilter">
+                            <option value="">All Courses</option>
+                            <option value="MCA">MCA</option>
+                            <option value="MBA">MBA</option>
+                            <option value="M.Tech">M.Tech</option>
+                        </select>
+                        <div class="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
+                            <i class="fas fa-chevron-down text-muted-foreground"></i>
+                        </div>
+                    </div>
+
+                    <!-- Sort Options -->
+                    <div class="relative">
+                        <select class="appearance-none bg-card border border-border rounded-lg px-4 py-3 pr-8 focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary" data-event="change:handleSort">
+                            <option value="name">Sort by Name</option>
+                            <option value="batch">Sort by Batch</option>
+                            <option value="course">Sort by Course</option>
+                        </select>
+                        <div class="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
+                            <i class="fas fa-chevron-down text-muted-foreground"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Active Filters -->
+            <div class="mt-4 flex flex-wrap gap-2" data-bind="activeFilters">
+                <span class="filter-badge inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-primary text-primary-foreground" data-mock="true">
+                    MCA Course
+                    <button class="ml-2 hover:text-primary-foreground/80" data-event="click:removeFilter">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </span>
+                <span class="filter-badge inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-secondary text-secondary-foreground" data-mock="true">
+                    Batch 2024-2026
+                    <button class="ml-2 hover:text-secondary-foreground/80" data-event="click:removeFilter">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </span>
+            </div>
+        </div>
+        <!-- @END_COMPONENT: FilterSection -->
+
+        <!-- @COMPONENT: StudentsGrid [Main content area displaying student cards] -->
+        <div class="space-y-8">
+            <!-- Results Summary -->
+            <div class="flex items-center justify-between">
+                <h2 class="text-lg font-semibold text-foreground" data-bind="resultsText">Showing 24 students</h2>
+                <div class="flex items-center space-x-2 text-sm text-muted-foreground">
+                    <i class="fas fa-info-circle"></i>
+                    <span>Click on LinkedIn to view profiles</span>
+                </div>
+            </div>
+
+            <!-- Students Grid -->
+            <!-- @MAP: students.map(student => ( -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                <!-- Student Card 1 -->
+                <div class="student-card bg-card rounded-xl shadow-sm border border-border p-6 hover:shadow-lg" data-mock="true">
+                    <!-- Professional headshot of a young Indian male computer science student -->
+                    <img 
+                        src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=300&h=300" 
+                        alt="Arjun Sharma profile photo" 
+                        class="w-20 h-20 rounded-full mx-auto mb-4 object-cover border-2 border-border"
+                        data-mock-image="true"
+                        data-implementation="Use student profile image from database"
+                    />
+                    <div class="text-center">
+                        <h3 class="font-semibold text-foreground text-lg mb-1" data-bind="student.name">Arjun Sharma</h3>
+                        <p class="text-muted-foreground text-sm mb-2" data-bind="student.course">MCA</p>
+                        <div class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-muted text-muted-foreground mb-4" data-bind="student.batch">
+                            <i class="fas fa-calendar-alt mr-1"></i>
+                            2024-2026
+                        </div>
+                        <a 
+                            href="https://linkedin.com/in/arjun-sharma" 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            class="linkedin-btn inline-flex items-center px-4 py-2 rounded-lg text-white text-sm font-medium hover:shadow-lg transition-all"
+                            data-bind="student.linkedinUrl"
+                            data-event="click:openLinkedIn"
+                        >
+                            <i class="fab fa-linkedin mr-2"></i>
+                            View Profile
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Student Card 2 -->
+                <div class="student-card bg-card rounded-xl shadow-sm border border-border p-6 hover:shadow-lg" data-mock="true">
+                    <!-- Professional headshot of a young Indian female computer science student -->
+                    <img 
+                        src="https://pixabay.com/get/g6531deee9520e2613c9a55bc93cb872f9a02302e85664538ce696287e1c7a731bc9c64874bb1e7cf7359f8927482f72bbe14e724b2d7472c08c7f7468efc70a3_1280.jpg" 
+                        alt="Priya Patel profile photo" 
+                        class="w-20 h-20 rounded-full mx-auto mb-4 object-cover border-2 border-border"
+                        data-mock-image="true"
+                    />
+                    <div class="text-center">
+                        <h3 class="font-semibold text-foreground text-lg mb-1">Priya Patel</h3>
+                        <p class="text-muted-foreground text-sm mb-2">MCA</p>
+                        <div class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-muted text-muted-foreground mb-4">
+                            <i class="fas fa-calendar-alt mr-1"></i>
+                            2024-2026
+                        </div>
+                        <a 
+                            href="https://linkedin.com/in/priya-patel" 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            class="linkedin-btn inline-flex items-center px-4 py-2 rounded-lg text-white text-sm font-medium hover:shadow-lg transition-all"
+                        >
+                            <i class="fab fa-linkedin mr-2"></i>
+                            View Profile
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Student Card 3 -->
+                <div class="student-card bg-card rounded-xl shadow-sm border border-border p-6 hover:shadow-lg" data-mock="true">
+                    <!-- Professional headshot of a young Indian male software developer -->
+                    <img 
+                        src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=300&h=300" 
+                        alt="Rajesh Kumar profile photo" 
+                        class="w-20 h-20 rounded-full mx-auto mb-4 object-cover border-2 border-border"
+                        data-mock-image="true"
+                    />
+                    <div class="text-center">
+                        <h3 class="font-semibold text-foreground text-lg mb-1">Rajesh Kumar</h3>
+                        <p class="text-muted-foreground text-sm mb-2">MCA</p>
+                        <div class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-muted text-muted-foreground mb-4">
+                            <i class="fas fa-calendar-alt mr-1"></i>
+                            2024-2026
+                        </div>
+                        <a 
+                            href="https://linkedin.com/in/rajesh-kumar" 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            class="linkedin-btn inline-flex items-center px-4 py-2 rounded-lg text-white text-sm font-medium hover:shadow-lg transition-all"
+                        >
+                            <i class="fab fa-linkedin mr-2"></i>
+                            View Profile
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Student Card 4 -->
+                <div class="student-card bg-card rounded-xl shadow-sm border border-border p-6 hover:shadow-lg" data-mock="true">
+                    <!-- Professional headshot of a young Indian female technology student -->
+                    <img 
+                        src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=300&h=300" 
+                        alt="Sneha Gupta profile photo" 
+                        class="w-20 h-20 rounded-full mx-auto mb-4 object-cover border-2 border-border"
+                        data-mock-image="true"
+                    />
+                    <div class="text-center">
+                        <h3 class="font-semibold text-foreground text-lg mb-1">Sneha Gupta</h3>
+                        <p class="text-muted-foreground text-sm mb-2">MCA</p>
+                        <div class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-muted text-muted-foreground mb-4">
+                            <i class="fas fa-calendar-alt mr-1"></i>
+                            2024-2026
+                        </div>
+                        <a 
+                            href="https://linkedin.com/in/sneha-gupta" 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            class="linkedin-btn inline-flex items-center px-4 py-2 rounded-lg text-white text-sm font-medium hover:shadow-lg transition-all"
+                        >
+                            <i class="fab fa-linkedin mr-2"></i>
+                            View Profile
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Student Card 5 -->
+                <div class="student-card bg-card rounded-xl shadow-sm border border-border p-6 hover:shadow-lg" data-mock="true">
+                    <!-- Professional headshot of a young Indian male computer applications student -->
+                    <img 
+                        src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=300&h=300" 
+                        alt="Vikash Singh profile photo" 
+                        class="w-20 h-20 rounded-full mx-auto mb-4 object-cover border-2 border-border"
+                        data-mock-image="true"
+                    />
+                    <div class="text-center">
+                        <h3 class="font-semibold text-foreground text-lg mb-1">Vikash Singh</h3>
+                        <p class="text-muted-foreground text-sm mb-2">MCA</p>
+                        <div class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-muted text-muted-foreground mb-4">
+                            <i class="fas fa-calendar-alt mr-1"></i>
+                            2024-2026
+                        </div>
+                        <a 
+                            href="https://linkedin.com/in/vikash-singh" 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            class="linkedin-btn inline-flex items-center px-4 py-2 rounded-lg text-white text-sm font-medium hover:shadow-lg transition-all"
+                        >
+                            <i class="fab fa-linkedin mr-2"></i>
+                            View Profile
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Student Card 6 -->
+                <div class="student-card bg-card rounded-xl shadow-sm border border-border p-6 hover:shadow-lg" data-mock="true">
+                    <!-- Professional headshot of a young Indian female MCA student -->
+                    <img 
+                        src="https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=300&h=300" 
+                        alt="Anita Desai profile photo" 
+                        class="w-20 h-20 rounded-full mx-auto mb-4 object-cover border-2 border-border"
+                        data-mock-image="true"
+                    />
+                    <div class="text-center">
+                        <h3 class="font-semibold text-foreground text-lg mb-1">Anita Desai</h3>
+                        <p class="text-muted-foreground text-sm mb-2">MCA</p>
+                        <div class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-muted text-muted-foreground mb-4">
+                            <i class="fas fa-calendar-alt mr-1"></i>
+                            2024-2026
+                        </div>
+                        <a 
+                            href="https://linkedin.com/in/anita-desai" 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            class="linkedin-btn inline-flex items-center px-4 py-2 rounded-lg text-white text-sm font-medium hover:shadow-lg transition-all"
+                        >
+                            <i class="fab fa-linkedin mr-2"></i>
+                            View Profile
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Student Card 7 -->
+                <div class="student-card bg-card rounded-xl shadow-sm border border-border p-6 hover:shadow-lg" data-mock="true">
+                    <!-- Professional headshot of a young Indian male graduate student -->
+                    <img 
+                        src="https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=300&h=300" 
+                        alt="Rohit Verma profile photo" 
+                        class="w-20 h-20 rounded-full mx-auto mb-4 object-cover border-2 border-border"
+                        data-mock-image="true"
+                    />
+                    <div class="text-center">
+                        <h3 class="font-semibold text-foreground text-lg mb-1">Rohit Verma</h3>
+                        <p class="text-muted-foreground text-sm mb-2">MCA</p>
+                        <div class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-muted text-muted-foreground mb-4">
+                            <i class="fas fa-calendar-alt mr-1"></i>
+                            2024-2026
+                        </div>
+                        <a 
+                            href="https://linkedin.com/in/rohit-verma" 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            class="linkedin-btn inline-flex items-center px-4 py-2 rounded-lg text-white text-sm font-medium hover:shadow-lg transition-all"
+                        >
+                            <i class="fab fa-linkedin mr-2"></i>
+                            View Profile
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Student Card 8 -->
+                <div class="student-card bg-card rounded-xl shadow-sm border border-border p-6 hover:shadow-lg" data-mock="true">
+                    <!-- Professional headshot of a young Indian female computer science graduate -->
+                    <img 
+                        src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=300&h=300" 
+                        alt="Kavya Sharma profile photo" 
+                        class="w-20 h-20 rounded-full mx-auto mb-4 object-cover border-2 border-border"
+                        data-mock-image="true"
+                    />
+                    <div class="text-center">
+                        <h3 class="font-semibold text-foreground text-lg mb-1">Kavya Sharma</h3>
+                        <p class="text-muted-foreground text-sm mb-2">MCA</p>
+                        <div class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-muted text-muted-foreground mb-4">
+                            <i class="fas fa-calendar-alt mr-1"></i>
+                            2024-2026
+                        </div>
+                        <a 
+                            href="https://linkedin.com/in/kavya-sharma" 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            class="linkedin-btn inline-flex items-center px-4 py-2 rounded-lg text-white text-sm font-medium hover:shadow-lg transition-all"
+                        >
+                            <i class="fab fa-linkedin mr-2"></i>
+                            View Profile
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <!-- @END_MAP )) -->
+
+            <!-- Load More Section -->
+            <div class="text-center pt-8">
+                <button 
+                    class="inline-flex items-center px-6 py-3 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 transition-colors"
+                    data-event="click:loadMore"
+                    data-implementation="Load additional students from database"
+                >
+                    <i class="fas fa-plus mr-2"></i>
+                    Load More Students
+                </button>
+                <p class="text-sm text-muted-foreground mt-2">Showing 8 of 124 students</p>
+            </div>
+        </div>
+        <!-- @END_COMPONENT: StudentsGrid -->
+
+        <!-- @COMPONENT: EmptyState [Displayed when no students match filters] -->
+        <div class="hidden text-center py-12" data-state="empty">
+            <div class="mx-auto w-24 h-24 bg-muted rounded-full flex items-center justify-center mb-4">
+                <i class="fas fa-search text-muted-foreground text-2xl"></i>
+            </div>
+            <h3 class="text-lg font-semibold text-foreground mb-2">No students found</h3>
+            <p class="text-muted-foreground mb-4">Try adjusting your search criteria or filters</p>
+            <button 
+                class="inline-flex items-center px-4 py-2 bg-secondary text-secondary-foreground rounded-lg hover:bg-secondary/80 transition-colors"
+                data-event="click:clearFilters"
+            >
+                <i class="fas fa-times mr-2"></i>
+                Clear Filters
+            </button>
+        </div>
+        <!-- @END_COMPONENT: EmptyState -->
+    </main>
+
+    <!-- @COMPONENT: Footer [Additional navigation and information] -->
+    <footer class="bg-card border-t border-border mt-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div>
+                    <h4 class="font-semibold text-foreground mb-4">Student Directory</h4>
+                    <p class="text-sm text-muted-foreground">Connect with fellow MCA students and build your professional network.</p>
+                </div>
+                <div>
+                    <h4 class="font-semibold text-foreground mb-4">Quick Links</h4>
+                    <ul class="space-y-2 text-sm text-muted-foreground">
+                        <li><a href="#" class="hover:text-foreground transition-colors">All Students</a></li>
+                        <li><a href="#" class="hover:text-foreground transition-colors">Alumni</a></li>
+                        <li><a href="#" class="hover:text-foreground transition-colors">Faculty</a></li>
+                        <li><a href="#" class="hover:text-foreground transition-colors">Events</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-semibold text-foreground mb-4">Contact</h4>
+                    <ul class="space-y-2 text-sm text-muted-foreground">
+                        <li><i class="fas fa-envelope mr-2"></i>admin@university.edu</li>
+                        <li><i class="fas fa-phone mr-2"></i>+91 98765 43210</li>
+                        <li><i class="fas fa-map-marker-alt mr-2"></i>Computer Science Department</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="border-t border-border mt-8 pt-8 text-center text-sm text-muted-foreground">
+                <p>&copy; 2024 University Student Directory. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+    <!-- @END_COMPONENT: Footer -->
+
+    <script>
+        // TODO: Implement search, filtering, and LinkedIn integration logic
+        (function() {
+            // Search functionality
+            const searchInput = document.querySelector('.search-input');
+            const studentCards = document.querySelectorAll('.student-card');
+            
+            // Mock search implementation for demonstration
+            if (searchInput) {
+                searchInput.addEventListener('input', function(e) {
+                    const searchTerm = e.target.value.toLowerCase();
+                    // TODO: Implement real-time search through student database
+                    console.log('Searching for:', searchTerm);
+                });
+            }
+            
+            // Filter functionality
+            const filterSelects = document.querySelectorAll('select');
+            filterSelects.forEach(select => {
+                select.addEventListener('change', function(e) {
+                    const filterType = e.target.name || 'unknown';
+                    const filterValue = e.target.value;
+                    // TODO: Implement database filtering based on selected criteria
+                    console.log(`Filter ${filterType}:`, filterValue);
+                });
+            });
+            
+            // LinkedIn link tracking
+            const linkedinLinks = document.querySelectorAll('.linkedin-btn');
+            linkedinLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    // TODO: Track LinkedIn profile clicks for analytics
+                    console.log('LinkedIn profile opened:', this.href);
+                });
+            });
+            
+            // Load more functionality
+            const loadMoreBtn = document.querySelector('[data-event="click:loadMore"]');
+            if (loadMoreBtn) {
+                loadMoreBtn.addEventListener('click', function() {
+                    // TODO: Load additional students from database with pagination
+                    console.log('Loading more students...');
+                });
+            }
+        })();
+    </script>
+</body>
+</html>

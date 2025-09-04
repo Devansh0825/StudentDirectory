@@ -1,5 +1,7 @@
-import { type User, type InsertUser, type Student, type InsertStudent, type AdminSession } from "@shared/schema";
+import { type User, type InsertUser, type Student, type InsertStudent, type AdminSession, users, students, adminSessions } from "@shared/schema";
 import { randomUUID } from "crypto";
+import { db } from "./db";
+import { eq, or, ilike } from "drizzle-orm";
 
 export interface IStorage {
   getUser(id: string): Promise<User | undefined>;
@@ -157,4 +159,125 @@ export class MemStorage implements IStorage {
   }
 }
 
-export const storage = new MemStorage();
+export class DatabaseStorage implements IStorage {
+  constructor() {
+    this.initializeAdmin();
+  }
+
+  private async initializeAdmin() {
+    try {
+      // Check if admin user already exists
+      const existingAdmin = await this.getUserByUsername("admin");
+      if (!existingAdmin) {
+        // Create default admin user (username: admin, password: admin123)
+        await db.insert(users).values({
+          username: "admin",
+          password: "admin123" // In real app, this should be hashed
+        });
+      }
+    } catch (error) {
+      console.error("Failed to initialize admin user:", error);
+    }
+  }
+
+  async getUser(id: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user || undefined;
+  }
+
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.username, username));
+    return user || undefined;
+  }
+
+  async createUser(insertUser: InsertUser): Promise<User> {
+    const [user] = await db.insert(users).values(insertUser).returning();
+    return user;
+  }
+
+  async getAllStudents(): Promise<Student[]> {
+    return await db.select().from(students);
+  }
+
+  async getStudent(id: string): Promise<Student | undefined> {
+    const [student] = await db.select().from(students).where(eq(students.id, id));
+    return student || undefined;
+  }
+
+  async createStudent(insertStudent: InsertStudent): Promise<Student> {
+    const [student] = await db.insert(students).values(insertStudent).returning();
+    return student;
+  }
+
+  async searchStudents(query: string): Promise<Student[]> {
+    const lowerQuery = `%${query.toLowerCase()}%`;
+    return await db.select().from(students).where(
+      or(
+        ilike(students.name, lowerQuery),
+        ilike(students.email, lowerQuery),
+        ilike(students.course, lowerQuery),
+        ilike(students.batch, lowerQuery)
+      )
+    );
+  }
+
+  async filterStudents(batch?: string, course?: string): Promise<Student[]> {
+    if (batch && course) {
+      return await db.select().from(students).where(eq(students.batch, batch));
+    } else if (batch) {
+      return await db.select().from(students).where(eq(students.batch, batch));
+    } else if (course) {
+      return await db.select().from(students).where(eq(students.course, course));
+    }
+    
+    return await db.select().from(students);
+  }
+
+  async clearAllStudents(): Promise<void> {
+    await db.delete(students);
+  }
+
+  async importStudents(studentsData: InsertStudent[]): Promise<Student[]> {
+    if (studentsData.length === 0) return [];
+    
+    const importedStudents = await db.insert(students).values(studentsData).returning();
+    return importedStudents;
+  }
+
+  // Admin session management
+  async createAdminSession(username: string, sessionToken: string): Promise<AdminSession> {
+    const expiresAt = new Date();
+    expiresAt.setHours(expiresAt.getHours() + 24); // 24 hour expiry
+    
+    const [session] = await db.insert(adminSessions).values({
+      sessionToken,
+      username,
+      expiresAt
+    }).returning();
+    
+    return session;
+  }
+
+  async getAdminSession(sessionToken: string): Promise<AdminSession | undefined> {
+    const [session] = await db.select().from(adminSessions)
+      .where(eq(adminSessions.sessionToken, sessionToken));
+    
+    // Check if session exists and hasn't expired
+    if (session && session.expiresAt && session.expiresAt > new Date()) {
+      return session;
+    }
+    
+    // Clean up expired session
+    if (session) {
+      await this.deleteAdminSession(sessionToken);
+    }
+    
+    return undefined;
+  }
+
+  async deleteAdminSession(sessionToken: string): Promise<void> {
+    await db.delete(adminSessions).where(eq(adminSessions.sessionToken, sessionToken));
+  }
+}
+
+export const storage = new DatabaseStorage();

@@ -13,7 +13,7 @@ function useAdminAuth() {
   const sessionToken = localStorage.getItem("adminSessionToken");
   
   return useQuery({
-    queryKey: ["/api/admin/verify"],
+    queryKey: ["/api/admin/verify", sessionToken],
     queryFn: async () => {
       if (!sessionToken) {
         throw new Error("No session token");
@@ -26,12 +26,17 @@ function useAdminAuth() {
       });
       
       if (!response.ok) {
+        // Clear invalid token from localStorage
+        localStorage.removeItem("adminSessionToken");
+        localStorage.removeItem("adminUsername");
         throw new Error("Authentication failed");
       }
       
       return response.json();
     },
     retry: false,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 10 * 60 * 1000, // 10 minutes
   });
 }
 

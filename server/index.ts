@@ -1,6 +1,7 @@
-import express, { type Request, Response, NextFunction } from "express";
+import 'dotenv/config';
+import express, { NextFunction, type Request, Response } from "express";
 import { registerRoutes } from "./routes";
-import { setupVite, serveStatic, log } from "./vite";
+import { log, serveStatic, setupVite } from "./vite";
 
 const app = express();
 app.use(express.json());

@@ -331,6 +331,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Proxy route for Google Drive images to bypass CORS
+  app.get("/api/images/proxy", async (req, res) => {
+    try {
+      const { url } = req.query;
+      if (!url || typeof url !== 'string') {
+        return res.status(400).json({ error: "URL parameter is required" });
+      }
+
+      // Validate that it's a Google Drive URL
+      if (!url.includes('drive.google.com') && !url.includes('lh3.googleusercontent.com')) {
+        return res.status(400).json({ error: "Only Google Drive URLs are allowed" });
+      }
+
+      const axios = (await import('axios')).default;
+      const response = await axios.get(url, {
+        responseType: 'arraybuffer',
+        timeout: 10000, // 10 second timeout
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (compatible; StudentDirectory/1.0)',
+        }
+      });
+
+      // Set appropriate headers
+      res.set({
+        'Content-Type': response.headers['content-type'] || 'image/jpeg',
+        'Cache-Control': 'public, max-age=3600', // Cache for 1 hour
+        'Access-Control-Allow-Origin': '*',
+      });
+
+      res.send(Buffer.from(response.data));
+    } catch (error) {
+      console.error('Image proxy error:', error);
+      res.status(500).json({ error: "Failed to fetch image" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

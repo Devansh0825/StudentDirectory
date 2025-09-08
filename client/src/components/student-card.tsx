@@ -1,11 +1,27 @@
-import { type Student } from "@shared/schema";
 import { Button } from "@/components/ui/button";
+import { type Student } from "@shared/schema";
+import { useState } from "react";
 
 interface StudentCardProps {
   student: Student;
 }
 
+// Helper to convert Google Drive share links to direct image links
+function getDirectImageUrl(url: string) {
+  if (!url) return "";
+  // Match Google Drive open?id= or file/d/ links
+  const match = url.match(/(?:id=|\/d\/)([a-zA-Z0-9_-]{25,})/);
+  if (match && match[1]) {
+    // Use proxy to bypass CORS and access restrictions
+    const directUrl = `https://lh3.googleusercontent.com/d/${match[1]}=w300-h300`;
+    return `/api/images/proxy?url=${encodeURIComponent(directUrl)}`;
+  }
+  return url;
+}
+
 export default function StudentCard({ student }: StudentCardProps) {
+  const [imgError, setImgError] = useState(false);
+
   const handleLinkedInClick = () => {
     if (student.linkedinUrl && student.linkedinUrl.trim()) {
       window.open(student.linkedinUrl, '_blank', 'noopener,noreferrer');
@@ -14,41 +30,24 @@ export default function StudentCard({ student }: StudentCardProps) {
 
   const hasValidLinkedIn = student.linkedinUrl && student.linkedinUrl.trim() !== '';
   const hasValidImage = student.imageUrl && student.imageUrl.trim() !== '';
+  const imageUrl = hasValidImage ? getDirectImageUrl(student.imageUrl) : '';
 
   return (
     <div className="student-card bg-card rounded-xl shadow-sm border border-border p-6 hover:shadow-lg transition-all duration-300" data-testid={`card-student-${student.id}`}>
       {/* Profile Image or Avatar */}
       <div className="w-20 h-20 rounded-full mx-auto mb-4 border-2 border-border overflow-hidden bg-muted flex items-center justify-center">
-        {hasValidImage ? (
+        {hasValidImage && !imgError ? (
           <img 
-            src={student.imageUrl}
+            src={imageUrl}
             alt={`${student.name} profile photo`}
             className="w-full h-full object-cover"
             data-testid={`img-student-photo-${student.id}`}
-            onLoad={(e) => {
-              console.log(`Image loaded successfully for ${student.name}: ${student.imageUrl}`);
+            onLoad={() => {
+              console.log(`Image loaded successfully for ${student.name}: ${imageUrl}`);
             }}
-            onError={(e) => {
-              console.error(`Image failed to load for ${student.name}: ${student.imageUrl}`);
-              // Try alternative Google Drive format if original fails
-              const originalSrc = e.currentTarget.src;
-              if (originalSrc.includes('drive.google.com/thumbnail')) {
-                // Extract file ID and try direct format
-                const fileIdMatch = originalSrc.match(/[?&]id=([a-zA-Z0-9_-]+)/);
-                if (fileIdMatch) {
-                  const fileId = fileIdMatch[1];
-                  const newSrc = `https://lh3.googleusercontent.com/d/${fileId}=w300-h300`;
-                  console.log(`Trying alternative format: ${newSrc}`);
-                  e.currentTarget.src = newSrc;
-                  return;
-                }
-              }
-              // If all else fails, hide image and show icon
-              e.currentTarget.style.display = 'none';
-              const parent = e.currentTarget.parentElement;
-              if (parent) {
-                parent.innerHTML = '<i class="fas fa-user text-2xl text-muted-foreground"></i>';
-              }
+            onError={() => {
+              console.error(`Image failed to load for ${student.name}: ${imageUrl}`);
+              setImgError(true);
             }}
           />
         ) : (
